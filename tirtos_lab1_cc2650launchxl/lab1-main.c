@@ -42,6 +42,8 @@
 /* BIOS Header files */
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
+#include <ti/sysbios/knl/Clock.h>
+#include <ti/sysbios/knl/Semaphore.h>
 
 /* TI-RTOS Header files */
 #include <ti/drivers/PIN.h>
@@ -56,6 +58,7 @@
 /* Could be anything, like computing primes */
 #define FakeBlockingSlowWork()   CPUdelay(12e6)
 #define FakeBlockingFastWork()   CPUdelay(3e6)
+
 
 
 /* Pin driver handles */
@@ -87,15 +90,21 @@ void doWork(void)
 	PIN_setOutputValue(pinHandle, Board_LED0, 0);
 }
 
+#define TEST_TASK_SLEEP
 Void workTaskFunc(UArg arg0, UArg arg1)
 {
     while (1) {
 
     	/* Do work */
     	doWork();
+#ifdef TEST_TASK_SLEEP
+        /* Sleep */
+        Task_sleep(1000 * (1000 / Clock_tickPeriod));
+#elif
+        /* Wait a while, because doWork should be a periodic thing, not continuous.*/
+        //CPUdelay(24e6);
+#endif
 
-    	/* Wait a while, because doWork should be a periodic thing, not continuous.*/
-    	CPUdelay(24e6);
     }
 }
 
