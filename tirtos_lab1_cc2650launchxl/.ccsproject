@@ -13,4 +13,5 @@
 	<templateProperties value="id=01_rtos_basic_lp.projectspec.tirtos_lab1_cc2650launchxl,type=rtsc,products=com.ti.rtsc.TIRTOSCC13XX_CC26XX:2.20.1.08,xdcToolsVersion=3.32.00.06,target=ti.targets.arm.elf.M3,platform=ti.platforms.simplelink:CC2650F128,buildProfile=release,isHybrid=true,configuroOptions=--compileOptions &quot;${COMPILER_FLAGS} &quot; "/>
 	<origin value="c:\ti\simplelink_academy_01_11_00_0000\modules\projects\tirtos_basic_lab1\CCS\01_rtos_basic_lp.projectspec"/>
 	<filesToOpen value="lab1-main.c,lab1-main-solution.c"/>
+	<isTargetManual value="false"/>
 </projectOptions>

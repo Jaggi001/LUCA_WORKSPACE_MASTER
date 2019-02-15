@@ -137,7 +137,7 @@ BIN_OUTPUTS__QUOTED += \
 
 # All Target
 all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "tirtos_lab1_cc2650launchxl.out"
+	@$(MAKE) --no-print-directory -Onone "tirtos_lab1_cc2650launchxl.out" secondary-outputs
 
 # Tool invocations
 tirtos_lab1_cc2650launchxl.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
@@ -162,6 +162,8 @@ clean:
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
 	-@echo 'Finished clean'
 	-@echo ' '
+
+secondary-outputs: $(BIN_OUTPUTS)
 
 .PHONY: all clean dependents
 .SECONDARY:

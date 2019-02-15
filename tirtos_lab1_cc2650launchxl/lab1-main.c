@@ -82,9 +82,9 @@ PIN_Config pinTable[] = {
 
 void doWork(void)
 {
-	PIN_setOutputValue(pinHandle, Board_LED1, 1);
+	PIN_setOutputValue(pinHandle, Board_LED0, 1);
     FakeBlockingSlowWork(); /* Pretend to do something useful but time-consuming */
-	PIN_setOutputValue(pinHandle, Board_LED1, 0);
+	PIN_setOutputValue(pinHandle, Board_LED0, 0);
 }
 
 Void workTaskFunc(UArg arg0, UArg arg1)
