@@ -126,7 +126,7 @@ int main()
   /* Register Application callback to trap asserts raised in the Stack */
   RegisterAssertCback(AssertHandler);
 
-  PIN_init(BoardGpioInitTable);
+//  PIN_init(BoardGpioInitTable);
 
 #ifndef POWER_SAVING
   /* Set constraints for Standby, powerdown and idle mode */
@@ -137,9 +137,10 @@ int main()
   /* Initialize the RTOS Log formatting and output to UART in Idle thread.
    * Note: Define xdc_runtime_Log_DISABLE_ALL to remove all impact of Log.
    * Note: NULL as Params gives 115200,8,N,1 and Blocking mode */
-  UART_init();
-  UartLog_init(UART_open(Board_UART, NULL));
 
+/*  UART_init();
+    UartLog_init(UART_open(Board_UART, NULL));
+*/
   /* Initialize ICall module */
   ICall_init();
 
@@ -149,6 +150,7 @@ int main()
   /* Kick off profile - Priority 3 */
   GAPRole_createTask();
 
+  /* User application - Priority 1 */
   ProjectZero_createTask();
 
   /* enable interrupts and start SYS/BIOS */

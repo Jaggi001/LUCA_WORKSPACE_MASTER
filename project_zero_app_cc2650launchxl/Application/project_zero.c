@@ -211,8 +211,8 @@ static PIN_State ledPinState;
  *   - LEDs Board_LED0 & Board_LED1 are off.
  */
 PIN_Config ledPinTable[] = {
-  Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
-  Board_LED1 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
+//  Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
+//  Board_LED1 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
   PIN_TERMINATE
 };
 
@@ -221,8 +221,8 @@ PIN_Config ledPinTable[] = {
  *   - Buttons interrupts are configured to trigger on falling edge.
  */
 PIN_Config buttonPinTable[] = {
-    Board_BUTTON0 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
-    Board_BUTTON1 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
+//    Board_BUTTON0 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
+//    Board_BUTTON1 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
     PIN_TERMINATE
 };
 
@@ -376,8 +376,9 @@ static void ProjectZero_init(void)
   Log_info0("Initializing the user task, hardware, BLE stack and services.");
 
   // Open display. By default this is disabled via the predefined symbol Display_DISABLE_ALL.
-  dispHandle = Display_open(Display_Type_LCD, NULL);
-
+/*
+ * dispHandle = Display_open(Display_Type_LCD, NULL);
+*/
   // Initialize queue for application messages.
   // Note: Used to transfer control to application thread from e.g. interrupts.
   Queue_construct(&applicationMsgQ, NULL);
@@ -386,7 +387,7 @@ static void ProjectZero_init(void)
   // ******************************************************************
   // Hardware initialization
   // ******************************************************************
-
+/*
   // Open LED pins
   ledPinHandle = PIN_open(&ledPinState, ledPinTable);
   if(!ledPinHandle) {
@@ -425,7 +426,7 @@ static void ProjectZero_init(void)
   Clock_construct(&button1DebounceClock, buttonDebounceSwiFxn,
                   50 * (1000/Clock_tickPeriod),
                   &clockParams);
-
+*/
   // ******************************************************************
   // BLE Stack initialization
   // ******************************************************************
