@@ -160,7 +160,7 @@ static gattAttribute_t LED_ServiceAttrTbl[] =
         ls_LED0Val
       },
     // LED1 Characteristic Declaration
-    {
+/*    {
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ,
       0,
@@ -173,6 +173,7 @@ static gattAttribute_t LED_ServiceAttrTbl[] =
         0,
         ls_LED1Val
       },
+*/
 };
 
 /*********************************************************************

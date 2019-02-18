@@ -162,7 +162,7 @@ static uint8 devInfoSystemId[DEVINFO_SYSTEM_ID_LEN] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // Model Number String characteristic
 static uint8 devInfoModelNumberProps = GATT_PROP_READ;
-static uint8 devInfoModelNumber[DEVINFO_STR_ATTR_LEN+1] = "Model Number";
+static uint8 devInfoModelNumber[DEVINFO_STR_ATTR_LEN+1] = "LUCA";
 
 // Serial Number String characteristic
 static uint8 devInfoSerialNumberProps = GATT_PROP_READ;

@@ -42,6 +42,7 @@ extern "C" {
 #include "CC2650_LAUNCHXL.h"
 
 /* These #defines allow us to reuse TI-RTOS across other device families */
+#define     LUCA_led                IOID_2
 #define     Board_LED0              Board_RLED
 #define     Board_LED1              Board_GLED
 #define     Board_LED2              Board_LED0

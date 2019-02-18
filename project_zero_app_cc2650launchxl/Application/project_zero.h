@@ -41,6 +41,8 @@ extern "C"
 /*********************************************************************
  * INCLUDES
  */
+#include <ti/drivers/PIN.h>
+#include <driverlib/ioc.h>
 
 /*********************************************************************
 *  EXTERNAL VARIABLES
@@ -66,6 +68,7 @@ extern "C"
  * Task creation function for the Simple BLE Peripheral.
  */
 extern void ProjectZero_createTask(void);
+extern PIN_Config ledPinTable[];
 
 
 /*********************************************************************

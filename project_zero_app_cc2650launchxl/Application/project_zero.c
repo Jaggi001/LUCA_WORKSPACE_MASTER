@@ -211,8 +211,7 @@ static PIN_State ledPinState;
  *   - LEDs Board_LED0 & Board_LED1 are off.
  */
 PIN_Config ledPinTable[] = {
-//  Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
-//  Board_LED1 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
+  LUCA_led | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
   PIN_TERMINATE
 };
 
@@ -220,15 +219,17 @@ PIN_Config ledPinTable[] = {
  * Application button pin configuration table:
  *   - Buttons interrupts are configured to trigger on falling edge.
  */
+/*
 PIN_Config buttonPinTable[] = {
 //    Board_BUTTON0 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
 //    Board_BUTTON1 | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
     PIN_TERMINATE
 };
+*/
 
 // Clock objects for debouncing the buttons
-static Clock_Struct button0DebounceClock;
-static Clock_Struct button1DebounceClock;
+//static Clock_Struct button0DebounceClock;
+//static Clock_Struct button1DebounceClock;
 
 // State of the buttons
 static uint8_t button0State = 0;
@@ -259,7 +260,7 @@ static void user_gapBondMgr_passcodeCB(uint8_t *deviceAddr, uint16_t connHandle,
 static void user_gapBondMgr_pairStateCB(uint16_t connHandle, uint8_t state,
                                         uint8_t status);
 
-static void buttonDebounceSwiFxn(UArg buttonId);
+//static void buttonDebounceSwiFxn(UArg buttonId);
 static void user_handleButtonPress(button_state_t *pState);
 
 // Generic callback handlers for value changes in services.
@@ -280,7 +281,7 @@ static void user_enqueueRawAppMsg(app_msg_types_t appMsgType, uint8_t *pData, ui
 static void user_enqueueCharDataMsg(app_msg_types_t appMsgType, uint16_t connHandle,
                                     uint16_t serviceUUID, uint8_t paramID,
                                     uint8_t *pValue, uint16_t len);
-static void buttonCallbackFxn(PIN_Handle handle, PIN_Id pinId);
+//static void buttonCallbackFxn(PIN_Handle handle, PIN_Id pinId);
 
 static char *Util_convertArrayToHexString(uint8_t const *src, uint8_t src_len,
                                           uint8_t *dst, uint8_t dst_len);
@@ -316,11 +317,11 @@ static LedServiceCBs_t user_LED_ServiceCBs =
 
 // Button Service callback handler.
 // The type Button_ServiceCBs_t is defined in button_service.h
-static ButtonServiceCBs_t user_Button_ServiceCBs =
+/*static ButtonServiceCBs_t user_Button_ServiceCBs =
 {
   .pfnChangeCb    = NULL, // No writable chars in Button Service, so no change handler.
   .pfnCfgChangeCb = user_service_CfgChangeCB, // Noti/ind configuration callback handler
-};
+};*/
 
 // Data Service callback handler.
 // The type Data_ServiceCBs_t is defined in data_service.h
@@ -387,14 +388,15 @@ static void ProjectZero_init(void)
   // ******************************************************************
   // Hardware initialization
   // ******************************************************************
-/*
+
   // Open LED pins
   ledPinHandle = PIN_open(&ledPinState, ledPinTable);
   if(!ledPinHandle) {
     Log_error0("Error initializing board LED pins");
     Task_exit();
   }
-
+  PIN_setOutputValue(ledPinHandle, LUCA_led, 1);
+/*
   buttonPinHandle = PIN_open(&buttonPinState, buttonPinTable);
   if(!buttonPinHandle) {
     Log_error0("Error initializing button pins");
@@ -496,13 +498,13 @@ static void ProjectZero_init(void)
 
   // Add services to GATT server and give ID of this task for Indication acks.
   LedService_AddService( selfEntity );
-  ButtonService_AddService( selfEntity );
+//  ButtonService_AddService( selfEntity );
   DataService_AddService( selfEntity );
 
   // Register callbacks with the generated services that
   // can generate events (writes received) to the application
   LedService_RegisterAppCBs( &user_LED_ServiceCBs );
-  ButtonService_RegisterAppCBs( &user_Button_ServiceCBs );
+//  ButtonService_RegisterAppCBs( &user_Button_ServiceCBs );
   DataService_RegisterAppCBs( &user_Data_ServiceCBs );
 
   // Placeholder variable for characteristic intialization
@@ -511,11 +513,11 @@ static void ProjectZero_init(void)
 
   // Initalization of characteristics in LED_Service that can provide data.
   LedService_SetParameter(LS_LED0_ID, LS_LED0_LEN, initVal);
-  LedService_SetParameter(LS_LED1_ID, LS_LED1_LEN, initVal);
+//  LedService_SetParameter(LS_LED1_ID, LS_LED1_LEN, initVal);
 
   // Initalization of characteristics in Button_Service that can provide data.
-  ButtonService_SetParameter(BS_BUTTON0_ID, BS_BUTTON0_LEN, initVal);
-  ButtonService_SetParameter(BS_BUTTON1_ID, BS_BUTTON1_LEN, initVal);
+//  ButtonService_SetParameter(BS_BUTTON0_ID, BS_BUTTON0_LEN, initVal);
+//  ButtonService_SetParameter(BS_BUTTON1_ID, BS_BUTTON1_LEN, initVal);
 
   // Initalization of characteristics in Data_Service that can provide data.
   DataService_SetParameter(DS_STRING_ID, sizeof(initString), initString);
@@ -1429,10 +1431,10 @@ static void buttonCallbackFxn(PIN_Handle handle, PIN_Id pinId)
   switch (pinId)
   {
     case Board_BUTTON0:
-      Clock_start(Clock_handle(&button0DebounceClock));
+//      Clock_start(Clock_handle(&button0DebounceClock));
       break;
     case Board_BUTTON1:
-      Clock_start(Clock_handle(&button1DebounceClock));
+//      Clock_start(Clock_handle(&button1DebounceClock));
       break;
   }
 }

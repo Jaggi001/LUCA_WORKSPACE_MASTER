@@ -127,6 +127,7 @@ int main()
   RegisterAssertCback(AssertHandler);
 
 //  PIN_init(BoardGpioInitTable);
+  PIN_init(ledPinTable);
 
 #ifndef POWER_SAVING
   /* Set constraints for Standby, powerdown and idle mode */
