@@ -47,7 +47,7 @@
  */
 #include <string.h>
 
-//#define xdc_runtime_Log_DISABLE_ALL 1  // Add to disable logs from this file
+#define xdc_runtime_Log_DISABLE_ALL 1  // Add to disable logs from this file
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
 
@@ -140,10 +140,10 @@ static gattAttribute_t LED_ServiceAttrTbl[] =
 {
   // LED_Service Service Declaration
   {
-    { ATT_BT_UUID_SIZE, primaryServiceUUID },
-    GATT_PERMIT_READ,
-    0,
-    (uint8_t *)&LedServiceDecl
+    { ATT_BT_UUID_SIZE, primaryServiceUUID },   //!< Attribute type (2 or 16 octet UUIDs)
+    GATT_PERMIT_READ,                           //!< Attribute permissions
+    0,                                          //!< Attribute handle - assigned internally by attribute server
+    (uint8_t *)&LedServiceDecl                  //!< Attribute value - encoding of the octet array is defined in the applicable profile.
   },
     // LED0 Characteristic Declaration
     {
@@ -155,7 +155,7 @@ static gattAttribute_t LED_ServiceAttrTbl[] =
       // LED0 Characteristic Value
       {
         { ATT_UUID_SIZE, ls_LED0UUID },
-        GATT_PERMIT_READ | GATT_PERMIT_WRITE | GATT_PERMIT_WRITE,
+        GATT_PERMIT_READ | GATT_PERMIT_WRITE,// | GATT_PERMIT_WRITE,
         0,
         ls_LED0Val
       },

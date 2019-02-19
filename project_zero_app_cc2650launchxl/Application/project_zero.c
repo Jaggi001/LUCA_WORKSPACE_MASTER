@@ -186,12 +186,12 @@ static uint8_t advertData[] =
   // complete name
   13,
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  'P', 'r', 'o', 'j', 'e', 'c', 't', ' ', 'Z', 'e', 'r', 'o',
+  'P', 'r', 'o', 'j', 'e', 'c', 't', ' ', 'L', 'U', 'C', 'A',
 
 };
 
 // GAP GATT Attributes
-static uint8_t attDeviceName[GAP_DEVICE_NAME_LEN] = "Project Zero";
+static uint8_t attDeviceName[GAP_DEVICE_NAME_LEN] = "Project Luca";
 
 // Globals used for ATT Response retransmission
 static gattMsgEvent_t *pAttRsp = NULL;
@@ -852,7 +852,7 @@ void user_LedService_ValueChangeHandler(char_data_t *pCharData)
       // Do something useful with pCharData->data here
       // -------------------------
       // Set the output value equal to the received value. 0 is off, not 0 is on
-      PIN_setOutputValue(ledPinHandle, Board_LED0, pCharData->data[0]);
+      PIN_setOutputValue(ledPinHandle, LUCA_led, pCharData->data[0]);
       Log_info2("Turning %s %s",
                 (IArg)"\x1b[31mLED0\x1b[0m",
                 (IArg)(pCharData->data[0]?"on":"off"));

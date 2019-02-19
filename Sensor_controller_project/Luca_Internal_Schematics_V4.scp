@@ -498,10 +498,7 @@ Frequency:100Khz]]></desc>
         <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
         <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
         <sccode name="execute" init_power_mode="0"><![CDATA[fwDelayInstrCycles(50);
-
-
 /////READING FROM ALS//////
-
 i2cStart();//S
 i2cTx(ALS_I2C_ADDR_W);//W
 i2cTx(MAIN_CTRL);//SUB ADDRESS
@@ -532,17 +529,17 @@ i2cStart();//S
 i2cTx(ALS_I2C_ADDR_W);//W
 if (state.i2cStatus == 0x0000) {
     i2cTx(MAIN_CTRL);   ///MAIN_CTRL register
-    i2cTx(0x00);          ///data in main control register
-    i2cTx(0x07);    ///data in ALS_MEAN_RATE register
-    i2cTx(0x00);       ///data in ALS_GAIN register
+    i2cTx(0x00);        ///data in main control register
+    i2cTx(0x07);        ///data in ALS_MEAN_RATE register
+    i2cTx(0x00);        ///data in ALS_GAIN register
     i2cTx(0x14);        ///data in INT_CFG
-    i2cTx(0xF0);            ///data in INT_PERSISTANCE
+    i2cTx(0xF0);        ///data in INT_PERSISTANCE
     i2cTx(0xFF);        ///data in ALS_THRES_UP_0
     i2cTx(0xFF);        ///data in ALS_THRES_UP_1
     i2cTx(0x00);        ///data in ALS_THRES_UP_2
     i2cTx(0xFF);        ///data in ALS_THRES_LOW_0
     i2cTx(0x00);        ///data in ALS_THRES_LOW_1
-    i2cTx(0x00);         ///data in ALS_THRES_LOW_2
+    i2cTx(0x00);        ///data in ALS_THRES_LOW_2
     i2cTx(0x00);        //data in ALS_THRES_VAR
     i2cStop();
 }
@@ -551,7 +548,7 @@ if (state.i2cStatus == 0x0000) {
 fwDelayInstrCycles(50);
 
 
-fwScheduleTask(1);]]></sccode>
+fwScheduleTask(100);]]></sccode>
         <sccode name="terminate" init_power_mode="0"><![CDATA[]]></sccode>
         <event_trigger active_count="1">0,1,2,3</event_trigger>
         <tt_iter>run_execute</tt_iter>
