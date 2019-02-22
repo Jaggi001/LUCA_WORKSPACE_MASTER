@@ -123,7 +123,6 @@ extern Display_Handle dispHandle;
 /*********************************************************************
  * LOCAL VARIABLES
  */
-
 static simpleProfileCBs_t *simpleProfile_AppCBs = NULL;
 
 /*********************************************************************
@@ -179,7 +178,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, characterUUID },
   GATT_PERMIT_READ,
   0,
-  &busStopProfileChar1Props
+  &busStopProfileChar1Props//GATT_PROP_READ | GATT_PROP_WRITE
  },
 
  // Characteristic Value 1
@@ -187,7 +186,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, busStopProfilechar1UUID },
   GATT_PERMIT_READ | GATT_PERMIT_WRITE,
   0,
-  busStopProfileChar1
+  busStopProfileChar1//value store
  },
 
  // Characteristic 1 User Description
@@ -195,7 +194,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, charUserDescUUID },
   GATT_PERMIT_READ,
   0,
-  busStopProfileChar1UserDesp
+  busStopProfileChar1UserDesp//client data in
  },
 
  // Characteristic 2 Declaration
@@ -203,7 +202,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, characterUUID },
   GATT_PERMIT_READ,
   0,
-  &busStopProfileChar2Props
+  &busStopProfileChar2Props//GATT_PROP_NOTIFY
  },
 
  // Characteristic Value 2
@@ -211,7 +210,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, busStopProfilechar2UUID },
   0,
   0,
-  busStopProfileChar2
+  busStopProfileChar2//value store
  },
 
  // Characteristic 2 configuration
@@ -219,7 +218,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, clientCharCfgUUID },
   GATT_PERMIT_READ | GATT_PERMIT_WRITE,
   0,
-  (uint8 *)&busStopProfileChar2Config
+  (uint8 *)&busStopProfileChar2Config//Client Characteristic Configuration
  },
 
  // Characteristic 2 User Description
@@ -227,7 +226,7 @@ static gattAttribute_t simpleProfileAttrTbl[SERVAPP_NUM_ATTR_SUPPORTED] =
   { ATT_BT_UUID_SIZE, charUserDescUUID },
   GATT_PERMIT_READ,
   0,
-  busStopProfileChar2UserDesp
+  busStopProfileChar2UserDesp//client data out
  },
 };
 

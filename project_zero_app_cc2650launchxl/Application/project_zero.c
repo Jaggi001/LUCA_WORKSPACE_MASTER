@@ -69,6 +69,10 @@
 #include "led_service.h"
 #include "button_service.h"
 #include "data_service.h"
+#include "bus_stop_gatt_profile.h"
+#include "bus_stop.h"
+
+#include "gatt_profile_uuid.h"//
 
 
 /*********************************************************************
@@ -266,6 +270,7 @@ static void user_handleButtonPress(button_state_t *pState);
 // Generic callback handlers for value changes in services.
 static void user_service_ValueChangeCB( uint16_t connHandle, uint16_t svcUuid, uint8_t paramID, uint8_t *pValue, uint16_t len );
 static void user_service_CfgChangeCB( uint16_t connHandle, uint16_t svcUuid, uint8_t paramID, uint8_t *pValue, uint16_t len );
+static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID);
 
 // Task context handlers for generated services.
 static void user_LedService_ValueChangeHandler(char_data_t *pCharData);
@@ -330,6 +335,14 @@ static DataServiceCBs_t user_Data_ServiceCBs =
   .pfnChangeCb    = user_service_ValueChangeCB, // Characteristic value change callback handler
   .pfnCfgChangeCb = user_service_CfgChangeCB, // Noti/ind configuration callback handler
 };
+
+static simpleProfileCBs_t user_simple_ServiceCBs =
+{
+  .pfnSimpleProfileChange    = SimpleBLEPeripheral_charValueChangeCB, // Characteristic value change callback handler
+  //SimpleBLEPeripheral_charValueChangeCB
+};
+
+
 
 
 /*********************************************************************
@@ -500,12 +513,14 @@ static void ProjectZero_init(void)
   LedService_AddService( selfEntity );
 //  ButtonService_AddService( selfEntity );
   DataService_AddService( selfEntity );
+  SimpleProfile_AddService(BUS_STOP_PROFILE_SERV_UUID);//customer service added
 
   // Register callbacks with the generated services that
   // can generate events (writes received) to the application
   LedService_RegisterAppCBs( &user_LED_ServiceCBs );
 //  ButtonService_RegisterAppCBs( &user_Button_ServiceCBs );
   DataService_RegisterAppCBs( &user_Data_ServiceCBs );
+//SimpleProfile_RegisterAppCBs( &user_simple_ServiceCBs);//customer service call
 
   // Placeholder variable for characteristic intialization
   uint8_t initVal[40] = {0};
@@ -1328,6 +1343,12 @@ static void user_service_CfgChangeCB( uint16_t connHandle, uint16_t svcUuid,
             "Sending msg to app.", (IArg)svcUuid, (IArg)paramID);
   user_enqueueCharDataMsg(APP_MSG_SERVICE_CFG, connHandle, svcUuid,
                           paramID, pValue, len);
+}
+
+static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID)
+{
+
+
 }
 
 /*

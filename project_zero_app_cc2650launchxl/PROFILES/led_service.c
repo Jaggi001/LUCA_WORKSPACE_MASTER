@@ -79,15 +79,27 @@
 */
 
 // LED_Service Service UUID
+
 CONST uint8_t LedServiceUUID[ATT_UUID_SIZE] =
 {
   LED_SERVICE_SERV_UUID_BASE128(LED_SERVICE_SERV_UUID)
 };
+/*
+CONST uint8_t LedServiceUUID[ATT_BT_UUID_SIZE] =
+{
+ LO_UINT16(HEARTRATE_SERV_UUID), HI_UINT16(HEARTRATE_SERV_UUID)
+};
+*/
 
 // LED0 UUID
 CONST uint8_t ls_LED0UUID[ATT_UUID_SIZE] =
 {
   LS_LED0_UUID_BASE128(LS_LED0_UUID)
+};
+
+CONST uint8 ls_LED0UUID1[ATT_BT_UUID_SIZE] =
+{
+  LO_UINT16(LS_LED0_UUID), HI_UINT16(LS_LED0_UUID)
 };
 
 // LED1 UUID
@@ -109,6 +121,7 @@ static LedServiceCBs_t *pAppCBs = NULL;
 
 // Service declaration
 static CONST gattAttrType_t LedServiceDecl = { ATT_UUID_SIZE, LedServiceUUID };
+//static CONST gattAttrType_t LedServiceDecl = { ATT_BT_UUID_SIZE, LedServiceUUID };
 
 // Characteristic "LED0" Properties (for declaration)
 static uint8_t ls_LED0Props = GATT_PROP_READ | GATT_PROP_WRITE | GATT_PROP_WRITE_NO_RSP;
@@ -130,7 +143,7 @@ static uint8_t ls_LED1Val[LS_LED1_LEN] = {0};
 // Length of data in characteristic "LED1" Value variable, initialized to minimal size.
 static uint16_t ls_LED1ValLen = LS_LED1_LEN_MIN;
 
-
+static uint8 led1UserDesp[16] = "Led Control";
 
 /*********************************************************************
 * Profile Attributes - Table
@@ -158,6 +171,13 @@ static gattAttribute_t LED_ServiceAttrTbl[] =
         GATT_PERMIT_READ | GATT_PERMIT_WRITE,// | GATT_PERMIT_WRITE,
         0,
         ls_LED0Val
+      },
+      // Characteristic 1 User Description
+      {
+       { ATT_BT_UUID_SIZE, charUserDescUUID },
+       GATT_PERMIT_READ,
+       0,
+       led1UserDesp//client data in
       },
     // LED1 Characteristic Declaration
 /*    {

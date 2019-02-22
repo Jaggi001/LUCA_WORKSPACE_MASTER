@@ -25,21 +25,22 @@
 #include "Board.h"
 
 /* Pin driver handles */
-static PIN_Handle ledPinHandle;
+//static PIN_Handle ledPinHandle;
 
 /* Global memory storage for a PIN_Config table */
-static PIN_State ledPinState;
+//static PIN_State ledPinState;
 
 /*
  * Initial LED pin configuration table
  *   - LEDs Board_LED0 & Board_LED1 are off.
  */
+/*
 PIN_Config ledPinTable[] = {
   Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
   Board_LED1 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
   PIN_TERMINATE
 };
-
+*/
 extern Display_Handle dispHandle;
 
 #include "osal_snv.h"
@@ -73,12 +74,13 @@ uint8_t BSAdvertData[] =
 
 
 void set_bsadvdate(){
+    /*
     ledPinHandle = PIN_open(&ledPinState, ledPinTable);
     if(!ledPinHandle) {
        Display_print0(dispHandle, 0, 0, "Error initializing board LED pins");
       //Log_error0("Error initializing board LED pins");
       //Task_exit();
-    }
+    }*/
     uint8_t res =
         GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(BSAdvertData), BSAdvertData);
         Display_print1(dispHandle, 0, 0, "advert: %c", res +'0');
@@ -449,7 +451,7 @@ void BusStop_HandleMessage(uint8 *param, uint8 len)
 
                 GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(BSAdvertData), BSAdvertData);
 
-                PIN_setOutputValue(ledPinHandle, Board_LED1, 1);
+//                PIN_setOutputValue(ledPinHandle, Board_LED1, 1);
         } else if (received_string[1] == delete_cmd){
 
                 uint32 snv_status = osal_snv_write(mailbox_nvid, sizeof(mailbox), &mailbox);
@@ -457,7 +459,7 @@ void BusStop_HandleMessage(uint8 *param, uint8 len)
   //              Log_info1("store mailbox after OK deleted: %c",
   //                      (IArg) snv_status +'0');
                 if (mailbox.num_msg_stored == 0){
-                    PIN_setOutputValue(ledPinHandle, Board_LED1, 0);
+//                    PIN_setOutputValue(ledPinHandle, Board_LED1, 0);
                 }
                 waiting_num = waiting_num - delete_count;
                 BSAdvertData[8] = '0' + waiting_num; //only dealed with num < 10
@@ -486,7 +488,7 @@ void BusStop_HandleMessage(uint8 *param, uint8 len)
         Display_print1(dispHandle, 0, 0, "read mailbox: %c", snv_status +'0');
 
         if (initialized && mailbox.num_msg_stored > 0){
-          PIN_setOutputValue(ledPinHandle, Board_LED1, 1);
+//          PIN_setOutputValue(ledPinHandle, Board_LED1, 1);
           waiting_num = mailbox.num_msg_stored;
           BSAdvertData[8] = '0' + waiting_num;  //only dealed with num < 10
           GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(BSAdvertData), BSAdvertData);

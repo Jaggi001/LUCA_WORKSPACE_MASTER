@@ -514,7 +514,7 @@ if (state.i2cStatus == 0x0000) {
 
     i2cRxAck(output.e);     //reading from ?????
     i2cRxAck(output.f);     //reading from ?????
-    i2cRxNack(output.g);    //reading from ?????
+    i2cRxNack(output.g);    //reading from ????? 179 -->
 
 
 
@@ -552,7 +552,7 @@ fwScheduleTask(100);]]></sccode>
         <sccode name="terminate" init_power_mode="0"><![CDATA[]]></sccode>
         <event_trigger active_count="1">0,1,2,3</event_trigger>
         <tt_iter>run_execute</tt_iter>
-        <tt_struct></tt_struct>
+        <tt_struct>state.i2cStatus</tt_struct>
         <rtl_struct></rtl_struct>
         <rtl_task_sel en="1" struct_log_list="output"/>
     </task>

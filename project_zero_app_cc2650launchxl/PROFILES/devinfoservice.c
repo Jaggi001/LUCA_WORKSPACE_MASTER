@@ -166,15 +166,15 @@ static uint8 devInfoModelNumber[DEVINFO_STR_ATTR_LEN+1] = "LUCA";
 
 // Serial Number String characteristic
 static uint8 devInfoSerialNumberProps = GATT_PROP_READ;
-static uint8 devInfoSerialNumber[DEVINFO_STR_ATTR_LEN+1] = "Serial Number";
+static uint8 devInfoSerialNumber[DEVINFO_STR_ATTR_LEN+1] = "ABC";
 
 // Firmware Revision String characteristic
 static uint8 devInfoFirmwareRevProps = GATT_PROP_READ;
-static uint8 devInfoFirmwareRev[DEVINFO_STR_ATTR_LEN+1] = "Firmware Revision";
+static uint8 devInfoFirmwareRev[DEVINFO_STR_ATTR_LEN+1] = "Firmware 0.0";
 
 // Hardware Revision String characteristic
 static uint8 devInfoHardwareRevProps = GATT_PROP_READ;
-static uint8 devInfoHardwareRev[DEVINFO_STR_ATTR_LEN+1] = "Hardware Revision";
+static uint8 devInfoHardwareRev[DEVINFO_STR_ATTR_LEN+1] = "Hardware V1.0";
 
 // Software Revision String characteristic
 static uint8 devInfoSoftwareRevProps = GATT_PROP_READ;
@@ -182,7 +182,7 @@ static uint8 devInfoSoftwareRev[DEVINFO_STR_ATTR_LEN+1] = "Software Revision";
 
 // Manufacturer Name String characteristic
 static uint8 devInfoMfrNameProps = GATT_PROP_READ;
-static uint8 devInfoMfrName[DEVINFO_STR_ATTR_LEN+1] = "Manufacturer Name";
+static uint8 devInfoMfrName[DEVINFO_STR_ATTR_LEN+1] = "Manufacturer Name:";
 
 // IEEE 11073-20601 Regulatory Certification Data List characteristic
 static uint8 devInfo11073CertProps = GATT_PROP_READ;
@@ -211,7 +211,7 @@ static uint8 devInfoPnpId[DEVINFO_PNP_ID_LEN] =
 /*********************************************************************
  * Profile Attributes - Table
  */
-
+//NUMBER STRING
 static gattAttribute_t devInfoAttrTbl[] =
 {
   // Device Information Service
@@ -302,7 +302,7 @@ static gattAttribute_t devInfoAttrTbl[] =
         (uint8 *) devInfoHardwareRev
       },
 
-    // Software Revision String Declaration
+/*    // Software Revision String Declaration
     {
       { ATT_BT_UUID_SIZE, characterUUID },
       GATT_PERMIT_READ,
@@ -317,7 +317,7 @@ static gattAttribute_t devInfoAttrTbl[] =
         0,
         (uint8 *) devInfoSoftwareRev
       },
-
+*/
     // Manufacturer Name String Declaration
     {
       { ATT_BT_UUID_SIZE, characterUUID },
@@ -333,7 +333,7 @@ static gattAttribute_t devInfoAttrTbl[] =
         0,
         (uint8 *) devInfoMfrName
       },
-
+/*
     // IEEE 11073-20601 Regulatory Certification Data List Declaration
     {
       { ATT_BT_UUID_SIZE, characterUUID },
@@ -365,6 +365,7 @@ static gattAttribute_t devInfoAttrTbl[] =
         0,
         (uint8 *) devInfoPnpId
       }
+*/
 };
 
 
