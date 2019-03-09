@@ -72,7 +72,7 @@ extern "C"
  * CONSTANTS
  */
 
-// Profile Parameters
+// Profile Parameters ID
 #define BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN        0  // R uint8 - Profile CHARACTERISTICic 1 value
 #define BUS_STOP_PROFILE_CHARACTERISTIC_2_CLIENT_DATA_OUT       1  // W uint8 - Profile CHARACTERISTICic 2 value
 

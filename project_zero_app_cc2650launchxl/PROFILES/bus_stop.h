@@ -28,10 +28,13 @@ typedef unsigned char byte;
 #define   jogger_nvid       0x80
 #define   msg_count_nvid    0x81
 #define   mailbox_nvid      0x82
-#define   store_addr 0x88
-
+#define   store_addr    0x88
+/*
 #define GAP_BS_DEVICE_NAME_LEN      13              // Excluding null-terminate char - this is the length of the next line
 #define GAP_BS_NAME                 "Bus Stop: 51a" // Legnth of this string should be in the line above
+*/
+#define GAP_BS_DEVICE_NAME_LEN      14              // Excluding null-terminate char - this is the length of the next line
+#define GAP_BS_NAME                 "LookingBus.com" // Legnth of this string should be in the line above
 
 #define BS_BROADCAST_NAME_LEN       0x15            // length of broadcast name - this is the length of the next line + 1 (Null)
 #define BS_BROADCAST_NAME           'C',\

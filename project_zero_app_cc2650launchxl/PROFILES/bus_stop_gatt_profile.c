@@ -146,7 +146,7 @@ static uint8 busStopProfileChar1UserDesp[15] = "Client Data In";
 static uint8 busStopProfileChar2Props = GATT_PROP_NOTIFY;
 // Characteristic 4 Value
 static uint8 busStopProfileChar2[BUS_STOP_PROFILE_CHARACTERISTIC_2_CLIENT_DATA_OUT_LEN]
-                                                                                 = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+                                                  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 // Bus Stop Profile Characteristic 2 Configuration Each client has its own
 // instantiation of the Client Characteristic Configuration. Reads of the
 // Client Characteristic Configuration only shows the configuration for
@@ -509,7 +509,7 @@ static bStatus_t simpleProfile_WriteAttrCB(uint16_t connHandle,
                                            uint16_t offset, uint8_t method)
 {
     bStatus_t status = SUCCESS;
-    uint8 notifyApp = 0xFF;
+    uint8 notifyApp = 0xFF;//paramID
 
 
     Display_print0(dispHandle, 0, 0, "WriteAttrCB called");

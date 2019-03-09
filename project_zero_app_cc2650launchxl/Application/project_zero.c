@@ -40,6 +40,7 @@
 #include <ti/sysbios/knl/Task.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Queue.h>
+#include <ti/sysbios/knl/Clock.h> // CUSTOMER
 
 #include <ti/drivers/PIN.h>
 #include <ti/mw/display/Display.h>
@@ -67,11 +68,10 @@
 
 // Bluetooth Developer Studio services
 #include "led_service.h"
-#include "button_service.h"
+//#include "button_service.h"
 #include "data_service.h"
 #include "bus_stop_gatt_profile.h"
 #include "bus_stop.h"
-
 #include "gatt_profile_uuid.h"//
 
 
@@ -86,7 +86,7 @@
 #define DEFAULT_DISCOVERABLE_MODE             GAP_ADTYPE_FLAGS_GENERAL
 
 // Default pass-code used for pairing.
-#define DEFAULT_PASSCODE                      000000
+#define DEFAULT_PASSCODE                     000000//BS_PASSKEY 201717
 
 // Task configuration
 #define PRZ_TASK_PRIORITY                     1
@@ -114,6 +114,7 @@ typedef enum
   APP_MSG_GAP_STATE_CHANGE,    /* The GAP / connection state has changed      */
   APP_MSG_BUTTON_DEBOUNCED,    /* A button has been debounced with new value  */
   APP_MSG_SEND_PASSCODE,       /* A pass-code/PIN is requested during pairing */
+  APP_MSG_PERIODIC_TIMER,      /* Periodic event*/ // CUSTOMER
 } app_msg_types_t;
 
 // Struct for messages sent to the application task
@@ -142,12 +143,23 @@ typedef struct
   uint32   numComparison;
 } passcode_req_t;
 
-// Struct for message about button state
+// CUSTOMER
+// Struct for messages from a service
 typedef struct
 {
-  PIN_Id   pinId;
-  uint8_t  state;
-} button_state_t;
+  Queue_Elem _elem;
+  uint16_t svcUUID;
+  uint16_t dataLen;
+  uint8_t paramID;
+  uint8_t data[]; // Flexible array member, extended to malloc - sizeof(.)
+} server_char_write_t;
+
+// Struct for message about button state
+//typedef struct
+//{
+//  PIN_Id   pinId;
+//  uint8_t  state;
+//} button_state_t;
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -163,6 +175,10 @@ static ICall_Semaphore sem;
 static Queue_Struct applicationMsgQ;
 static Queue_Handle hApplicationMsgQ;
 
+// Queue object used for service messages.
+static Queue_Struct serviceMsgQ;        // CUSTOMER
+static Queue_Handle hServiceMsgQ;       // CUSTOMER
+
 // Task configuration
 Task_Struct przTask;
 Char przTaskStack[PRZ_TASK_STACK_SIZE];
@@ -177,6 +193,7 @@ static uint8_t scanRspData[] =
 
 // GAP - Advertisement data (max size = 31 bytes, though this is
 // best kept short to conserve power while advertisting)
+/*
 static uint8_t advertData[] =
 {
   // Flags; this sets the device to use limited discoverable
@@ -191,11 +208,10 @@ static uint8_t advertData[] =
   13,
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
   'P', 'r', 'o', 'j', 'e', 'c', 't', ' ', 'L', 'U', 'C', 'A',
-
 };
-
+*/
 // GAP GATT Attributes
-static uint8_t attDeviceName[GAP_DEVICE_NAME_LEN] = "Project Luca";
+//static uint8_t attDeviceName[GAP_DEVICE_NAME_LEN] = "Project Luca";
 
 // Globals used for ATT Response retransmission
 static gattMsgEvent_t *pAttRsp = NULL;
@@ -203,11 +219,11 @@ static uint8_t rspTxRetry = 0;
 
 
 /* Pin driver handles */
-static PIN_Handle buttonPinHandle;
+//static PIN_Handle buttonPinHandle;
 static PIN_Handle ledPinHandle;
 
 /* Global memory storage for a PIN_Config table */
-static PIN_State buttonPinState;
+//static PIN_State buttonPinState;
 static PIN_State ledPinState;
 
 /*
@@ -235,12 +251,18 @@ PIN_Config buttonPinTable[] = {
 //static Clock_Struct button0DebounceClock;
 //static Clock_Struct button1DebounceClock;
 
+// Clock object for periodic event
+static Clock_Struct myClock; // CUSTOMER
+
 // State of the buttons
-static uint8_t button0State = 0;
-static uint8_t button1State = 0;
+//static uint8_t button0State = 0;
+//static uint8_t button1State = 0;
 
 // Global display handle
 Display_Handle dispHandle;
+
+// Char1 counter
+//uint32_t sunlightServiceChar1Counter = 0; // CUSTOMER
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -265,16 +287,16 @@ static void user_gapBondMgr_pairStateCB(uint16_t connHandle, uint8_t state,
                                         uint8_t status);
 
 //static void buttonDebounceSwiFxn(UArg buttonId);
-static void user_handleButtonPress(button_state_t *pState);
+//static void user_handleButtonPress(button_state_t *pState);
 
 // Generic callback handlers for value changes in services.
 static void user_service_ValueChangeCB( uint16_t connHandle, uint16_t svcUuid, uint8_t paramID, uint8_t *pValue, uint16_t len );
 static void user_service_CfgChangeCB( uint16_t connHandle, uint16_t svcUuid, uint8_t paramID, uint8_t *pValue, uint16_t len );
-static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID);
+
 
 // Task context handlers for generated services.
 static void user_LedService_ValueChangeHandler(char_data_t *pCharData);
-static void user_ButtonService_CfgChangeHandler(char_data_t *pCharData);
+//static void user_ButtonService_CfgChangeHandler(char_data_t *pCharData);
 static void user_DataService_ValueChangeHandler(char_data_t *pCharData);
 static void user_DataService_CfgChangeHandler(char_data_t *pCharData);
 
@@ -291,6 +313,14 @@ static void user_enqueueCharDataMsg(app_msg_types_t appMsgType, uint16_t connHan
 static char *Util_convertArrayToHexString(uint8_t const *src, uint8_t src_len,
                                           uint8_t *dst, uint8_t dst_len);
 static char *Util_getLocalNameStr(const uint8_t *data);
+
+static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID);// Callback from the customer service. CUSTOMER
+static void SimpleBLEPeripheral_ValueChangeDispatchHandler(server_char_write_t *pWrite); // Local handler called from the Task context of this task. CUSTOMER
+// Declaration of service callback handlers
+//static void user_sunlightServiceValueChangeCB(uint8_t paramID); // Callback from the service. // SOLUTION
+//static void user_sunlightService_ValueChangeDispatchHandler(server_char_write_t *pWrite); // Local handler called from the Task context of this task. SOLUTION
+// Declaration of clock callback function
+static void myClockSwiFxn(uintptr_t arg0);  // SOLUTION
 
 /*********************************************************************
  * PROFILE CALLBACKS
@@ -338,8 +368,8 @@ static DataServiceCBs_t user_Data_ServiceCBs =
 
 static simpleProfileCBs_t user_simple_ServiceCBs =
 {
-  .pfnSimpleProfileChange    = SimpleBLEPeripheral_charValueChangeCB, // Characteristic value change callback handler
-  //SimpleBLEPeripheral_charValueChangeCB
+  //.pfnSimpleProfileChange    = SimpleBLEPeripheral_charValueChangeCB,//both are good i think
+  SimpleBLEPeripheral_charValueChangeCB // Characteristic value change callback handler
 };
 
 
@@ -397,6 +427,10 @@ static void ProjectZero_init(void)
   // Note: Used to transfer control to application thread from e.g. interrupts.
   Queue_construct(&applicationMsgQ, NULL);
   hApplicationMsgQ = Queue_handle(&applicationMsgQ);
+  // Initialize queue for service messages.
+  // Note: Used to transfer control to application thread
+  Queue_construct(&serviceMsgQ, NULL);        // CUSTOMER
+  hServiceMsgQ = Queue_handle(&serviceMsgQ);  // CUSTOMER
 
   // ******************************************************************
   // Hardware initialization
@@ -442,6 +476,15 @@ static void ProjectZero_init(void)
                   50 * (1000/Clock_tickPeriod),
                   &clockParams);
 */
+  // Periodic Event
+  // Set a period, so it times out periodically without jitter
+  Clock_Params clockParams;
+  Clock_Params_init(&clockParams);
+  clockParams.period = 5000 * (1000/Clock_tickPeriod), // 5000 ms, conversion from ms to clock ticks. // CUSTOMER
+  // Initialize the clock object / Clock_Struct previously added globally.
+  Clock_construct(&myClock, myClockSwiFxn,
+                  0, // Initial delay before first timeout
+                  &clockParams); // CUSTOMER
   // ******************************************************************
   // BLE Stack initialization
   // ******************************************************************
@@ -454,21 +497,21 @@ static void ProjectZero_init(void)
   uint16_t advertOffTime = 0; // miliseconds
 
   // Set advertisement enabled.
-  GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),
-                       &initialAdvertEnable);
+  GAPRole_SetParameter(GAPROLE_ADVERT_ENABLED, sizeof(uint8_t),&initialAdvertEnable);
 
   // Configure the wait-time before restarting advertisement automatically
-  GAPRole_SetParameter(GAPROLE_ADVERT_OFF_TIME, sizeof(uint16_t),
-                       &advertOffTime);
+  GAPRole_SetParameter(GAPROLE_ADVERT_OFF_TIME, sizeof(uint16_t),&advertOffTime);
 
   // Initialize Scan Response data
   GAPRole_SetParameter(GAPROLE_SCAN_RSP_DATA, sizeof(scanRspData), scanRspData);
 
   // Initialize Advertisement data
-  GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(advertData), advertData);
-
+//  GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(advertData), advertData);
+//  Log_info1("Name in advertData array: \x1b[33m%s\x1b[0m",
+//            (IArg)Util_getLocalNameStr(advertData));
+  GAPRole_SetParameter(GAPROLE_ADVERT_DATA, sizeof(BSAdvertData), BSAdvertData);//advertising customer data
   Log_info1("Name in advertData array: \x1b[33m%s\x1b[0m",
-            (IArg)Util_getLocalNameStr(advertData));
+            (IArg)Util_getLocalNameStr(BSAdvertData));
 
   // Set advertising interval
   uint16_t advInt = DEFAULT_ADVERTISING_INTERVAL;
@@ -484,7 +527,7 @@ static void ProjectZero_init(void)
   // ******************************************************************
   // BLE Bond Manager initialization
   // ******************************************************************
-  uint32_t passkey = 0; // passkey "000000"
+  uint32_t passkey = 201717;//0; // passkey "000000"
   uint8_t pairMode = GAPBOND_PAIRING_MODE_WAIT_FOR_REQ;
   uint8_t mitm = TRUE;
   uint8_t ioCap = GAPBOND_IO_CAP_DISPLAY_ONLY;
@@ -507,20 +550,34 @@ static void ProjectZero_init(void)
   DevInfo_AddService();                        // Device Information Service
 
   // Set the device name characteristic in the GAP Profile
-  GGS_SetParameter(GGS_DEVICE_NAME_ATT, GAP_DEVICE_NAME_LEN, attDeviceName);
+//  GGS_SetParameter(GGS_DEVICE_NAME_ATT, GAP_DEVICE_NAME_LEN, attDeviceName);
+  GGS_SetParameter(GGS_DEVICE_NAME_ATT, GAP_DEVICE_NAME_LEN, GAP_BS_NAME);  // CUSTOMER
+  //ADDING CUSTOMER SERVICES
+  SimpleProfile_AddService(BUS_STOP_PROFILE_SERV_UUID);                     // CUSTOMER service added
+  SimpleProfile_RegisterAppCBs( &user_simple_ServiceCBs);                   // CUSTOMER service call
+/*
+  // Initial sunlightService Char1 value, can be set to anything
+  sunlightServiceChar1Counter = 0xFF;                                       // SOLUTION
+  // Initalization of characteristics in sunlightService that are readable.
+  SunlightService_SetParameter(SUNLIGHTSERVICE_SUNLIGHTSERVICECHAR1, SUNLIGHTSERVICE_SUNLIGHTSERVICECHAR1_LEN,
+                               &sunlightServiceChar1Counter);               / SOLUTION
 
+  // Initial sunlightService Char updateperiod value, can be set to anything
+  uint8_t initialVal[2] = {0x11, 0x22};                                                                       // SOLUTION
+  // Initalization of characteristics in sunlightService that are readable.
+  SunlightService_SetParameter(SUNLIGHTSERVICE_UPDATEPERIOD, SUNLIGHTSERVICE_UPDATEPERIOD_LEN, &initialVal);  // SOLUTION
+*/
   // Add services to GATT server and give ID of this task for Indication acks.
   LedService_AddService( selfEntity );
 //  ButtonService_AddService( selfEntity );
   DataService_AddService( selfEntity );
-  SimpleProfile_AddService(BUS_STOP_PROFILE_SERV_UUID);//customer service added
+
 
   // Register callbacks with the generated services that
   // can generate events (writes received) to the application
   LedService_RegisterAppCBs( &user_LED_ServiceCBs );
 //  ButtonService_RegisterAppCBs( &user_Button_ServiceCBs );
   DataService_RegisterAppCBs( &user_Data_ServiceCBs );
-//SimpleProfile_RegisterAppCBs( &user_simple_ServiceCBs);//customer service call
 
   // Placeholder variable for characteristic intialization
   uint8_t initVal[40] = {0};
@@ -633,6 +690,22 @@ static void ProjectZero_taskFxn(UArg a0, UArg a1)
         // Free the received message.
         ICall_free(pMsg);
       }
+
+      // Process messages sent from another task or another context. // CUSTOMER
+        while (!Queue_empty(hServiceMsgQ))
+        {
+          server_char_write_t *pWrite = Queue_dequeue(hServiceMsgQ);
+
+          // Process service message.
+          switch (pWrite->svcUUID) {
+            case BUS_STOP_PROFILE_SERV_UUID:
+                SimpleBLEPeripheral_ValueChangeDispatchHandler(pWrite);
+            break;
+          }
+
+            // Free the message received from the service callback.
+            ICall_free(pWrite);
+        }
     }
   }
 }
@@ -674,9 +747,9 @@ static void user_processApplicationMessage(app_msg_t *pMsg)
     case APP_MSG_SERVICE_CFG: /* Message about received CCCD write */
       /* Call different handler per service */
       switch(pCharData->svcUUID) {
-        case BUTTON_SERVICE_SERV_UUID:
-          user_ButtonService_CfgChangeHandler(pCharData);
-          break;
+        //case BUTTON_SERVICE_SERV_UUID:
+        //  user_ButtonService_CfgChangeHandler(pCharData);
+        //  break;
         case DATA_SERVICE_SERV_UUID:
           user_DataService_CfgChangeHandler(pCharData);
           break;
@@ -703,10 +776,18 @@ static void user_processApplicationMessage(app_msg_t *pMsg)
       break;
 
     case APP_MSG_BUTTON_DEBOUNCED: /* Message from swi about pin change */
-      {
-        button_state_t *pButtonState = (button_state_t *)pMsg->pdu;
-        user_handleButtonPress(pButtonState);
-      }
+//      {
+//        button_state_t *pButtonState = (button_state_t *)pMsg->pdu;
+//        user_handleButtonPress(pButtonState);
+//      }
+      break;
+    case APP_MSG_PERIODIC_TIMER: /* Message from swi about clock expires */ // CUSTOMER
+      {/*
+          sunlightServiceChar1Counter ++;                                     // SOLUTION
+          // Change of characteristics values in sunlightService that are readable/writable.
+          SunlightService_SetParameter(SUNLIGHTSERVICE_SUNLIGHTSERVICECHAR1, SUNLIGHTSERVICE_SUNLIGHTSERVICECHAR1_LEN,
+                                       &sunlightServiceChar1Counter);         // SOLUTION
+    */}
       break;
   }
 }
@@ -813,6 +894,7 @@ static void user_processGapStateChangeEvt(gaprole_States_t newState)
  *
  * @return  None.
  */
+/*
 static void user_handleButtonPress(button_state_t *pState)
 {
   Log_info2("%s %s",
@@ -836,7 +918,7 @@ static void user_handleButtonPress(button_state_t *pState)
       break;
   }
 }
-
+*/
 /*
  * @brief   Handle a write request sent from a peer device.
  *
@@ -903,6 +985,7 @@ void user_LedService_ValueChangeHandler(char_data_t *pCharData)
  *
  * @return  None.
  */
+/*
 void user_ButtonService_CfgChangeHandler(char_data_t *pCharData)
 {
   // Cast received data to uint16, as that's the format for CCCD writes.
@@ -948,7 +1031,7 @@ void user_ButtonService_CfgChangeHandler(char_data_t *pCharData)
       break;
   }
 }
-
+*/
 /*
  * @brief   Handle a write request sent from a peer device.
  *
@@ -1345,12 +1428,6 @@ static void user_service_CfgChangeCB( uint16_t connHandle, uint16_t svcUuid,
                           paramID, pValue, len);
 }
 
-static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID)
-{
-
-
-}
-
 /*
  *  Callbacks from Swi-context
  *****************************************************************************/
@@ -1362,6 +1439,7 @@ static void SimpleBLEPeripheral_charValueChangeCB(uint8 paramID)
  *
  * @param  buttonId    The pin being debounced
  */
+/*
 static void buttonDebounceSwiFxn(UArg buttonId)
 {
   // Used to send message to app
@@ -1427,7 +1505,7 @@ static void buttonDebounceSwiFxn(UArg buttonId)
                       (uint8_t *)&buttonMsg, sizeof(buttonMsg));
   }
 }
-
+*/
 /*
  *  Callbacks from Hwi-context
  *****************************************************************************/
@@ -1440,6 +1518,7 @@ static void buttonDebounceSwiFxn(UArg buttonId)
  * @param  handle    The PIN_Handle instance this is about
  * @param  pinId     The pin that generated the interrupt
  */
+/*
 static void buttonCallbackFxn(PIN_Handle handle, PIN_Id pinId)
 {
   Log_info1("Button interrupt: %s",
@@ -1459,7 +1538,7 @@ static void buttonCallbackFxn(PIN_Handle handle, PIN_Id pinId)
       break;
   }
 }
-
+*/
 
 /******************************************************************************
  *****************************************************************************
@@ -1570,10 +1649,10 @@ static void user_updateCharVal(char_data_t *pCharData)
                               pCharData->data);
     break;
 
-    case BUTTON_SERVICE_SERV_UUID:
-      ButtonService_SetParameter(pCharData->paramID, pCharData->dataLen,
-                                 pCharData->data);
-    break;
+//    case BUTTON_SERVICE_SERV_UUID:
+//      ButtonService_SetParameter(pCharData->paramID, pCharData->dataLen,
+//                                 pCharData->data);
+//    break;
 
   }
 }
@@ -1642,5 +1721,119 @@ static char *Util_getLocalNameStr(const uint8_t *data) {
   return localNameStr;
 }
 
-/*********************************************************************
-*********************************************************************/
+/******************************************************************************
+ *****************************************************************************
+ *
+ *  CUSTOMER functions
+ *
+ ****************************************************************************
+ *****************************************************************************/
+
+/*
+ * @brief   Process message from sunlight service value change
+ *
+ *          These are messages not from the BLE stack, but from the
+ *          application itself.
+ *
+ *
+ * @param   pWrite - Pointer to struct with new values
+ */
+void SimpleBLEPeripheral_ValueChangeDispatchHandler(server_char_write_t *pWrite)
+{
+  //uint32 newPeriod;
+  static uint8_t received_string[BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN_LEN] = {0};
+  switch (pWrite->paramID) {
+    case BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN:
+        // Do something useful with pCharData->data here
+        // -------------------------
+        // Copy received data to holder array, ensuring NULL termination.
+        memset(received_string, 0, BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN_LEN);
+        memcpy(received_string, pWrite->data, BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN_LEN-1);
+        BusStop_HandleMessage(received_string,BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN_LEN);
+        // Needed to copy before log statement, as the holder array remains after
+        // the pCharData message has been freed and reused for something else.
+        Log_info3("Value Change msg: %s %s: %s",
+                  (IArg)"Data Service",
+                  (IArg)"String",
+                  (IArg)received_string);
+    break;
+    case BUS_STOP_PROFILE_CHARACTERISTIC_2_CLIENT_DATA_OUT:
+/*
+      // Check if clock is active before calling Clock stop. Clock period will not be updated if the clock is active.
+      if (Clock_isActive(Clock_handle(&myClock))){
+        Clock_stop(Clock_handle(&myClock));
+      }
+      // manipulate the data in whichever way you prefer
+      newPeriod = ((pWrite->data[0]) | (pWrite->data[1] << 8))*(10 / Clock_tickPeriod);
+      Clock_setPeriod(Clock_handle(&myClock), newPeriod);
+
+      Clock_start(Clock_handle(&myClock));
+*/
+    break;
+    }
+}
+
+/*
+ * @brief   Callback from sunlightService indicating a characteristic value change
+ *
+ *          This function asks the service what the received data was, and sends
+ *          this in a message to the user Task for processing.
+ *
+ * @param   paramID - parameter ID of the value that was changed
+ */
+static void SimpleBLEPeripheral_charValueChangeCB(uint8_t paramID)
+{
+  // See sunlightService.h to compare paramID with characteristic value attribute.
+  // Called in Stack Task context, so can't do processing here.
+
+  // Send message to application message queue about received data.
+  uint16_t readLen = 0; // How much to read via service API
+
+  switch (paramID) {
+    case BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN:
+      readLen = BUS_STOP_PROFILE_CHARACTERISTIC_1_CLIENT_DATA_IN_LEN;
+    break;
+    case BUS_STOP_PROFILE_CHARACTERISTIC_2_CLIENT_DATA_OUT:
+      readLen = BUS_STOP_PROFILE_CHARACTERISTIC_2_CLIENT_DATA_OUT_LEN;
+    break;
+  }
+
+  // Allocate memory for the message.
+  // Note: The message doesn't have to contain the data itself, as that's stored in
+  //       a variable in the service. However, to prevent data loss if a new value is received
+  //       before GetParameter is called, we call GetParameter now.
+  server_char_write_t *pWrite = ICall_malloc(sizeof(server_char_write_t) + readLen);
+
+  if (pWrite != NULL)
+  {
+    pWrite->svcUUID = BUS_STOP_PROFILE_SERV_UUID;
+    pWrite->dataLen = readLen;
+    pWrite->paramID = paramID;
+    // Get the data from the service API.
+    // Note: Fixed length is used here, but changing the GetParameter signature is not
+    //       a problem, in case variable length is needed.
+    // Note: It could be just as well to send dataLen and a pointer to the received data directly to this callback, avoiding GetParameter alltogether.
+    SimpleProfile_GetParameter(paramID, pWrite->data);
+
+    // Enqueue the message using pointer to queue node element.
+    Queue_enqueue(hServiceMsgQ, &pWrite->_elem);
+    // Let application know there's a message
+    Semaphore_post(sem);
+  }
+}
+
+/*
+ * @brief   Function for clock timeout
+ *
+ *          The function is called everytime the myClock object timeout.
+ *          clockParams.period controls how frequent this function is called.
+ *
+ * @param   arg0 - unused
+ */
+void myClockSwiFxn(uintptr_t arg0)
+{
+  // Can't call blocking TI-RTOS calls or BLE APIs from here, as it is Swi context
+  // .. Send a message to the Task that something is afoot.
+  user_enqueueRawAppMsg(APP_MSG_PERIODIC_TIMER, NULL, 0); // Not sending any data here, just a signal
+}
+

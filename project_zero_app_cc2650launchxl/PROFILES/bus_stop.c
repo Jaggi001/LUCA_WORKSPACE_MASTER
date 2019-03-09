@@ -67,9 +67,13 @@ uint8_t BSAdvertData[] =
   0x20, 0x20, 0x20, 0x20,
 
   // complete name
-  17,
+//  17,
+//  GAP_ADTYPE_LOCAL_NAME_COMPLETE,
+//  'S', 'e', 'e', 'i', 'n', 'g', 'B', 'u', 's', '3', '1', '3', '0', '0', '0', '2',
+  // complete name
+  15,
   GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-  'S', 'e', 'e', 'i', 'n', 'g', 'B', 'u', 's', '3', '1', '3', '0', '0', '0', '2',
+  'L', 'o', 'o', 'k', 'i', 'n', 'g', 'B', 'u', 's', '.', 'c', 'o', 'm',
 };
 
 
@@ -435,6 +439,7 @@ void BusStop_HandleMessage(uint8 *param, uint8 len)
       // the pCharData message has been freed and reused for something else.
       if (received_string[0] == OK_cmd){
         if (received_string[1] == store_cmd){
+
 
             Display_print0(dispHandle, 0, 0, "START TO OSAL SNV WRITE %c");
 
